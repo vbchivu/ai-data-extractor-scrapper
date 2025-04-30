@@ -1,0 +1,20 @@
+Context: The following text was extracted from a university program webpage.
+Task: Extract the information specified in the JSON schema below from the text.
+Output Format: Provide the output strictly as a JSON object matching the schema.
+Handling Missing Data: If a specific piece of information is not clearly found in the text, use the value "Not found".
+
+JSON Schema:
+{
+  "program_name": "string",
+  "university_name": "string",
+  "tuition_fee": "string",
+  "application_deadline": "string",
+  "entry_requirement_summary": "string"
+}
+
+Webpage Text:
+"""
+[Insert the raw_text extracted by scraper.py here]
+"""
+
+Extracted Information (JSON):
