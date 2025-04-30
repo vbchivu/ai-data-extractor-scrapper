@@ -104,6 +104,10 @@ Run the main script from your terminal using `python3 main.py`.
     python3 main.py --url "https://web.archive.org/web/20240314085048/https://www.uva.nl/en/programmes/masters/information-studies/information-studies.html" --university "University of Amsterdam" --output program_data.json
     ```
 
+    ```bash
+    python3 main.py --url "https://web.archive.org/web/20240314085048/https://www.uva.nl/en/programmes/masters/information-studies/information-studies.html" --university "University of Amsterdam" --extractor ollama --output ollama_output.json
+    ```
+
 ## Project Structure
 
 .
