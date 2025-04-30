@@ -1,4 +1,3 @@
-
 # AI-Enhanced Program Data Extractor PoC
 
 ## Overview
@@ -57,6 +56,15 @@ This PoC aims to showcase skills in:
     * Install the required libraries:
 
         ```bash
+        python3 -m virtualenv -p python3 env
+        ```
+
+        ```bash
+        source env/bin/activate
+        ```
+
+        ```bash
+
         pip install -r requirements.txt
         ```
 
