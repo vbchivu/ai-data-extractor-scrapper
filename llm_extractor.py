@@ -8,9 +8,10 @@ from dotenv import load_dotenv
 from openai import OpenAI, APIConnectionError, RateLimitError, APIStatusError
 
 # Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-# --- Load Environment Variables ---
 load_dotenv()
 
 # --- Target Schema Definition ---
@@ -19,7 +20,7 @@ TARGET_SCHEMA = {
     "university_name": "string",
     "tuition_fee": "string",
     "application_deadline": "string",
-    "entry_requirement_summary": "string"
+    "entry_requirement_summary": "string",
 }
 
 # --- Prompt Templates ---
@@ -45,18 +46,23 @@ Webpage Text:
 Respond ONLY with the valid JSON object:
 """
 
+
 # --- Mock Function ---
-def extract_structured_data_mocked(raw_text: str, university_name: str = "University specified elsewhere") -> Dict[str, Any]:
-    """ MOCK FUNCTION: Simulates extracting structured data... """
+def extract_structured_data_mocked(
+    raw_text: str, university_name: str = "University specified elsewhere"
+) -> Dict[str, Any]:
+    """MOCK FUNCTION: Simulates extracting structured data..."""
     logging.info("Starting mocked LLM data extraction.")
     extracted_data = {key: "Not found" for key in TARGET_SCHEMA}
     extracted_data["university_name"] = university_name
     text_lower = raw_text.lower() if raw_text else ""
 
     # Mock Logic using keyword spotting
-    match = re.search(r'(master(?:.s)?\s*(?:programme|program)?\s*in\s*[\w\s]+)', text_lower)
+    match = re.search(
+        r"(master(?:.s)?\s*(?:programme|program)?\s*in\s*[\w\s]+)", text_lower
+    )
     if match:
-        potential_name = ' '.join(word.capitalize() for word in match.group(1).split())
+        potential_name = " ".join(word.capitalize() for word in match.group(1).split())
         extracted_data["program_name"] = f"Mock Program: {potential_name}"
     elif "information studies" in text_lower:
         extracted_data["program_name"] = "Mock Program: Information Studies"
@@ -65,22 +71,55 @@ def extract_structured_data_mocked(raw_text: str, university_name: str = "Univer
 
     fee_keywords = ["tuition", "fee", "cost", "€", "eur", "usd", "$", "gbp", "£"]
     if any(keyword in text_lower for keyword in fee_keywords):
-        extracted_data["tuition_fee"] = "Mock Fee: Approx. €XX,XXX / year (Non-EU). Verify on official page."
+        extracted_data["tuition_fee"] = (
+            "Mock Fee: Approx. €XX,XXX / year (Non-EU). Verify on official page."
+        )
 
     deadline_keywords = ["deadline", "apply by", "application period", "closes on"]
-    month_names = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
-    if any(keyword in text_lower for keyword in deadline_keywords) or any(month in text_lower for month in month_names):
-        extracted_data["application_deadline"] = "Mock Deadline: e.g., 1 March (Non-EU) / 1 May (EU). Verify on official page."
+    month_names = [
+        "jan",
+        "feb",
+        "mar",
+        "apr",
+        "may",
+        "jun",
+        "jul",
+        "aug",
+        "sep",
+        "oct",
+        "nov",
+        "dec",
+    ]
+    if any(keyword in text_lower for keyword in deadline_keywords) or any(
+        month in text_lower for month in month_names
+    ):
+        extracted_data["application_deadline"] = (
+            "Mock Deadline: e.g., 1 March (Non-EU) / 1 May (EU). Verify on official page."
+        )
 
-    req_keywords = ["requirement", "admission", "entry", "eligibility", "qualification", "prerequisite", "ielts", "toefl"]
+    req_keywords = [
+        "requirement",
+        "admission",
+        "entry",
+        "eligibility",
+        "qualification",
+        "prerequisite",
+        "ielts",
+        "toefl",
+    ]
     if any(keyword in text_lower for keyword in req_keywords):
-        extracted_data["entry_requirement_summary"] = "Mock Requirements: Typically Bachelor's degree + English proficiency (e.g., IELTS/TOEFL). Check specifics on official page."
+        extracted_data["entry_requirement_summary"] = (
+            "Mock Requirements: Typically Bachelor's degree + English proficiency (e.g., IELTS/TOEFL). Check specifics on official page."
+        )
 
     logging.info(f"Mocked extraction complete.")
     return extracted_data
 
+
 # --- Ollama LLM Extraction Function ---
-def extract_structured_data_ollama(raw_text: str, university_name: str = "University specified elsewhere") -> Optional[Dict[str, Any]]:
+def extract_structured_data_ollama(
+    raw_text: str, university_name: str = "University specified elsewhere"
+) -> Optional[Dict[str, Any]]:
     """
     Uses a locally running Ollama model (via OpenAI compatible API) to extract structured data.
     Refactored prompts, attempts JSON mode, includes robust parsing and validation.
@@ -93,18 +132,22 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
         A dictionary containing the extracted data conforming to TARGET_SCHEMA,
         or None if extraction fails.
     """
-    logging.info("Attempting structured data extraction using Ollama (Synced & Refactored).")
+    logging.info(
+        "Attempting structured data extraction using Ollama (Synced & Refactored)."
+    )
 
     # 1. Get Ollama configuration
     ollama_base_url = os.getenv("OLLAMA_BASE_URL")
     ollama_model = os.getenv("OLLAMA_MODEL")
     if not ollama_base_url or not ollama_model:
-        logging.error("Ollama base URL or model not configured in environment variables (.env file).")
+        logging.error(
+            "Ollama base URL or model not configured in environment variables (.env file)."
+        )
         return None
 
     # 2. Initialize OpenAI client
     try:
-        client = OpenAI(base_url=ollama_base_url, api_key='ollama')
+        client = OpenAI(base_url=ollama_base_url, api_key="ollama")
         logging.info(f"Initialized OpenAI client for Ollama at {ollama_base_url}")
     except Exception as e:
         logging.error(f"Failed to initialize OpenAI client: {e}")
@@ -113,8 +156,12 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
     # 3. Format Prompts using Templates
     try:
         schema_json_string = json.dumps(TARGET_SCHEMA, indent=2)
-        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(schema_json_string=schema_json_string)
-        user_prompt = USER_PROMPT_TEMPLATE.format(university_name=university_name, raw_text=raw_text)
+        system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
+            schema_json_string=schema_json_string
+        )
+        user_prompt = USER_PROMPT_TEMPLATE.format(
+            university_name=university_name, raw_text=raw_text
+        )
     except KeyError as e:
         logging.error(f"Failed to format prompt template. Missing key: {e}")
         return None
@@ -126,12 +173,14 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
 
     # 4. Make the API Call - Attempting JSON Mode
     try:
-        logging.info(f"Sending request to Ollama model: {ollama_model} (attempting JSON mode)")
+        logging.info(
+            f"Sending request to Ollama model: {ollama_model} (attempting JSON mode)"
+        )
         response = client.chat.completions.create(
             model=ollama_model,
             messages=messages,
             temperature=0.0,
-            response_format={"type": "json_object"}, # Attempt to force JSON output
+            response_format={"type": "json_object"},  # Attempt to force JSON output
         )
         raw_response_content = response.choices[0].message.content
         logging.info("Received response from Ollama (JSON mode attempted).")
@@ -139,7 +188,9 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
 
     except APIConnectionError as e:
         logging.error(f"Failed to connect to Ollama server at {ollama_base_url}: {e}")
-        print(f"\nERROR: Could not connect to Ollama server at {ollama_base_url}. Is Ollama running?")
+        print(
+            f"\nERROR: Could not connect to Ollama server at {ollama_base_url}. Is Ollama running?"
+        )
         return None
     except RateLimitError as e:
         logging.error(f"Rate limit error (unexpected with local Ollama): {e}")
@@ -147,22 +198,30 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
     except APIStatusError as e:
         # Check if the error indicates JSON mode is unsupported
         err_content = str(e.response.content).lower()
-        if "json_object type is not supported" in err_content or "response_format" in err_content:
-            logging.warning(f"Ollama model '{ollama_model}' or server version might not support JSON mode. Consider updating Ollama/model or removing 'response_format'. Error: {e}")
+        if (
+            "json_object type is not supported" in err_content
+            or "response_format" in err_content
+        ):
+            logging.warning(
+                f"Ollama model '{ollama_model}' or server version might not support JSON mode. Consider updating Ollama/model or removing 'response_format'. Error: {e}"
+            )
             # Potentially retry without JSON mode here if needed, but for PoC we'll fail.
         else:
-            logging.error(f"Ollama API error: Status Code={e.status_code}, Response={e.response}")
+            logging.error(
+                f"Ollama API error: Status Code={e.status_code}, Response={e.response}"
+            )
         return None
     except Exception as e:
         logging.error(f"An unexpected error occurred during Ollama API call: {e}")
         return None
 
-
     # 5. Robust Parsing and Validation
     try:
         logging.debug("Attempting to parse LLM response as JSON.")
         # Attempt to strip markdown fences first, as models might still add them even with JSON mode
-        match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', raw_response_content, re.DOTALL)
+        match = re.search(
+            r"```(?:json)?\s*(\{.*?\})\s*```", raw_response_content, re.DOTALL
+        )
         if match:
             logging.debug("Found JSON within markdown fences. Extracting.")
             json_str = match.group(1)
@@ -173,7 +232,9 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
         extracted_data = json.loads(json_str)
 
         if not isinstance(extracted_data, dict):
-            logging.error(f"LLM response parsed, but is not a dictionary (Type: {type(extracted_data)}). Response: {json_str}")
+            logging.error(
+                f"LLM response parsed, but is not a dictionary (Type: {type(extracted_data)}). Response: {json_str}"
+            )
             return None
 
         # Validate keys and fill missing ones
@@ -197,10 +258,13 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
                 # validated_data[key] = extracted_data[key]
 
         if missing_keys:
-            logging.warning(f"Ollama response JSON was missing expected keys: {missing_keys}. Filled with 'Not found'.")
+            logging.warning(
+                f"Ollama response JSON was missing expected keys: {missing_keys}. Filled with 'Not found'."
+            )
         if extra_keys:
-            logging.warning(f"Ollama response JSON included unexpected extra keys: {extra_keys}.")
-
+            logging.warning(
+                f"Ollama response JSON included unexpected extra keys: {extra_keys}."
+            )
 
         logging.info("Successfully parsed and validated JSON response from Ollama.")
         return validated_data
@@ -213,11 +277,14 @@ def extract_structured_data_ollama(raw_text: str, university_name: str = "Univer
         logging.error(f"Error during JSON parsing/validation: {e}")
         return None
 
+
 # --- Example Usage ---
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("--- Testing Mock LLM Extractor ---")
     sample_text_mock = "..."
-    mock_result = extract_structured_data_mocked(sample_text_mock, university_name="Mock University")
+    mock_result = extract_structured_data_mocked(
+        sample_text_mock, university_name="Mock University"
+    )
     # print(json.dumps(mock_result, indent=2))
 
     print("\n--- Testing Ollama LLM Extractor ---")
@@ -229,7 +296,9 @@ if __name__ == '__main__':
     Entry requirements: A solid Bachelor's degree in Computer Science or related field. English B2 level needed. IELTS 7.0 overall required.
     Contact admissions for details.
     """
-    ollama_result = extract_structured_data_ollama(sample_text_ollama, university_name="Test University")
+    ollama_result = extract_structured_data_ollama(
+        sample_text_ollama, university_name="Test University"
+    )
 
     if ollama_result:
         print("\n--- Ollama Extracted Data (Parsed & Validated) ---")
@@ -237,4 +306,6 @@ if __name__ == '__main__':
         print("-------------------------------------------------")
     else:
         print("\n--- Ollama Extraction Failed ---")
-        print("Check logs, ensure Ollama server is running, model in .env is pulled & compatible.")
+        print(
+            "Check logs, ensure Ollama server is running, model in .env is pulled & compatible."
+        )

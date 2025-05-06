@@ -78,8 +78,8 @@ This PoC aims to showcase skills in:
     * *(Optional but recommended)* Create and activate a virtual environment:
 
         ```bash
-        python3 -m venv env
-        source env/bin/activate  # On Windows use `env\Scripts\activate`
+        python3 -m virtualenv -p python3 env
+        source env/bin/activate
         ```
 
     * Ensure your `requirements.txt` file has the following content:

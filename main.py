@@ -3,19 +3,16 @@ import json
 import logging
 import argparse
 from typing import Optional, Dict, Any
-# --- Import necessary functions ---
 from scraper import scrape_program_page
-# Import both extractor functions
 from llm_extractor import (
     extract_structured_data_mocked,
     extract_structured_data_ollama
 )
-# --- --- --- --- --- --- --- ---
 
 # Configure basic logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [Main] %(message)s')
 
-# --- Updated Pipeline Function ---
+# --- Pipeline Function ---
 def run_extraction_pipeline(url: str, university: str, extractor_type: str) -> Optional[Dict[str, Any]]:
     """
     Runs the full pipeline: scrape -> extract (using specified method).
@@ -57,8 +54,6 @@ def run_extraction_pipeline(url: str, university: str, extractor_type: str) -> O
 
     logging.info(f"Extractor '{extractor_type}' successful.")
     return structured_data
-# --- --- --- --- --- --- --- ---
-
 
 # --- Main execution ---
 if __name__ == '__main__':

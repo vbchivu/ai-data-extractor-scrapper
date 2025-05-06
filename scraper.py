@@ -2,17 +2,14 @@
 import requests
 from bs4 import BeautifulSoup
 import logging
-from typing import Optional  # <--- ADD THIS IMPORT
+from typing import Optional
 
 # Configure basic logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 
-
-# VV--- CHANGE THIS LINE ---VV
 def scrape_program_page(url: str) -> Optional[str]:
-    # ^^--- CHANGE THIS LINE ---^^
     """
     Fetches and parses a university program page to extract relevant text content.
 
